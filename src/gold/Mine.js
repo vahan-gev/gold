@@ -38,7 +38,7 @@ class Mine {
         this.gl = gl;
         this.canvas = canvas;
         this.shaderProgram = shaderProgram;
-        this.position = new Vector(0, 0, -1);
+        this.position = new Vector(0, 0, 0);
         this.scale = new Vector(1, 1, 1);
         this.rotation = new Vector(0, 0, 0);
         this.matrix = new Matrix4f();
@@ -56,7 +56,7 @@ class Mine {
 
     }
 
-    draw() {
+    draw(scene) {
         const gl = this.gl;
         gl.useProgram(this.shaderProgram);
 
@@ -81,39 +81,10 @@ class Mine {
         gl.uniformMatrix4fv(this.cameraLocation, gl.FALSE, new Float32Array(this.camera.matrix));
         gl.uniformMatrix4fv(this.transform, gl.FALSE, new Float32Array(transformMatrix));
 
-        // Vertex positions
-        const vertices = [
-            -0.5, 0.5, 0.0,    // top left
-            -0.5, -0.5, 0.0,   // bottom left
-            0.5, -0.5, 0.0,    // bottom right
-            0.5, 0.5, 0.0      // top right
-        ];
+        scene.forEach(object => {
+            object.draw(gl, transformMatrix, this.vertexPosition, this.vertexColor, this.transform);
+        });
         
-        // Add colors for each vertex (RGBA)
-        const colors = [
-            0.0, 1.0, 0.0, 1.0, // top left
-            1.0, 0.0, 1.0, 1.0, // bottom left
-            1.0, 1.0, 0.0, 1.0, // bottom right
-            0.0, 1.0, 1.0, 1.0 // top right
-        ];
-
-        // Set up vertex positions
-        const vertexBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-        const position = gl.getAttribLocation(this.shaderProgram, "vertexPosition");
-        gl.vertexAttribPointer(position, 3, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(position);
-
-        // Set up vertex colors
-        const colorBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-        const color = gl.getAttribLocation(this.shaderProgram, "vertexColor");
-        gl.vertexAttribPointer(color, 4, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(color);
-
-        gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
         gl.flush();
     }
 }
