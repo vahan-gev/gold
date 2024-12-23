@@ -14,18 +14,21 @@ function App() {
     if (!canvas) return; // Canvas is not supported in your browser
 
     const camera = new Camera();
-    
 
     const mine = new Mine(canvas, camera);
     camera.position = new Vector(0, 0, 1);
-    // camera.rotation = new Vector(0, 0, 0)
+    
+    let lastTime = 0;
     // Draw the scene
-    const animate = () => {
+    const animate = (currentTime) => {
+      const deltaTime = (currentTime - lastTime) / 1000;
+      lastTime = currentTime;
+      camera.rotation.y += deltaTime;
       mine.draw();
       window.requestAnimationFrame(animate);
     }
 
-    animate();
+    animate(0);
   });
   return (
     <div>

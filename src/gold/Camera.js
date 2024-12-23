@@ -9,7 +9,14 @@ class Camera {
     }
 
     get position() {
-        return this._position;
+        const proxyHandler = {
+            set: (target, prop, value) => {
+                target[prop] = value;
+                this.updateMatrix();
+                return true;
+            }
+        };
+        return new Proxy(this._position, proxyHandler);
     }
 
     set position(position) {
@@ -18,7 +25,14 @@ class Camera {
     }
 
     get rotation() {
-        return this._rotation;
+        const proxyHandler = {
+            set: (target, prop, value) => {
+                target[prop] = value;
+                this.updateMatrix();
+                return true;
+            }
+        };
+        return new Proxy(this._rotation, proxyHandler);
     }
 
     set rotation(rotation) {
