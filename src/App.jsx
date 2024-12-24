@@ -9,6 +9,7 @@ import { Scene } from './gold/Scene';
 import { Sphere } from './gold/Sphere';
 import brick from './assets/brick.png'
 import wool from './assets/wool.png'
+import { Model } from './gold/Model';
 function App() {
     const CANVAS_WIDTH = 1024;
     const CANVAS_HEIGHT = 512;
@@ -27,9 +28,13 @@ function App() {
 
         // sphere.wireframe = true;
         const scene = new Scene();
-        scene.add(box);
-        scene.add(sphere);
+        let model;
+        async function loadModels() {
+            model = await Model.create(mine.gl, new Color(0, 0, 0, 1), new Vector(0, 0, 0), new Vector(0.2, 0.2, 0.2), './tree.obj');
+            scene.add(model);
+        }
 
+        loadModels();
         let lastTime = 0;
 
         // Draw the scene
@@ -37,6 +42,9 @@ function App() {
             const deltaTime = (currentTime - lastTime) / 1000;
             lastTime = currentTime;
             box.rotation.y += deltaTime * 50;
+            if (model) {
+                model.rotation.y += deltaTime * 50;
+            }
             box.rotation.x += deltaTime * 50;
             sphere.rotation.y += deltaTime * 50;
             mine.draw(scene);

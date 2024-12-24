@@ -5,8 +5,25 @@ class Object {
     constructor(gl, vertices, facesByIndex, color, position, scale, textureUrl, textureCoordinates) {
         this.gl = gl;
         this.id = Math.random().toString(36).substring(7);
-        this.vertices = vertices ?? [];
-        this.facesByIndex = facesByIndex ?? []
+        if (Array.isArray(vertices)) {
+            // Handle existing array format
+            this.vertices = vertices;
+            this.facesByIndex = facesByIndex;
+        } else if (vertices && vertices.vertices) {
+            // Handle model data format
+            this.vertices = vertices.vertices.map(v => [v[0], v[1], v[2]]);
+            this.facesByIndex = [];
+            for (let i = 0; i < vertices.indices.length; i += 3) {
+                this.facesByIndex.push([
+                    vertices.indices[i],
+                    vertices.indices[i + 1],
+                    vertices.indices[i + 2]
+                ]);
+            }
+            if (vertices.textureCoords) {
+                textureCoordinates = vertices.textureCoords;
+            }
+        }
         this.color = color ?? new Color(1, 1, 1);
         this.isWireframe = false;
         this.rawVertices = toRawTriangleArray(this)

@@ -137,6 +137,4 @@ function initTextureBuffer(gl, textureCoordinates) {
     return textureCoordBuffer;
 }
 
-
-
 export { getGL, initVertexBuffer, compileShader, linkShaderProgram, initSimpleShaderProgram, toRawLineArray, toRawTriangleArray, loadTexture, initTextureBuffer }  
