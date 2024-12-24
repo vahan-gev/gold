@@ -53,7 +53,11 @@ class Mine {
         this.transform = gl.getUniformLocation(shaderProgram, "transform");
         this.projectionMatrix = gl.getUniformLocation(this.shaderProgram, 'projectionMatrix')
         this.cameraLocation = gl.getUniformLocation(shaderProgram, "cameraMatrix");
-
+        this.useTexture = gl.getUniformLocation(this.shaderProgram, 'useTexture');
+        this.vertexTexture = gl.getAttribLocation(this.shaderProgram, 'vertexTexture');
+        gl.enableVertexAttribArray(this.vertexTexture);
+        // Not used
+        this.uSampler = gl.getUniformLocation(this.shaderProgram, 'uSampler');
     }
 
     draw(scene) {
@@ -82,7 +86,7 @@ class Mine {
         gl.uniformMatrix4fv(this.transform, gl.FALSE, new Float32Array(transformMatrix));
 
         scene.forEach(object => {
-            object.draw(gl, transformMatrix, this.vertexPosition, this.vertexColor, this.transform);
+            object.draw(gl, transformMatrix, this.vertexPosition, this.vertexColor, this.transform, this.vertexTexture, this.useTexture);
         });
         
         gl.flush();

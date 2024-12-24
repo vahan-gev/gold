@@ -89,4 +89,107 @@ const toRawLineArray = protoGeometry => {
     return result
 }
 
-export { getGL, initVertexBuffer, compileShader, linkShaderProgram, initSimpleShaderProgram, toRawLineArray, toRawTriangleArray }  
+
+function loadTexture(gl, url) {
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
+    // Fill with a blue pixel until the image loads
+    const level = 0;
+    const internalFormat = gl.RGBA;
+    const width = 1;
+    const height = 1;
+    const border = 0;
+    const srcFormat = gl.RGBA;
+    const srcType = gl.UNSIGNED_BYTE;
+    const pixel = new Uint8Array([0, 0, 255, 255]);
+    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, pixel);
+
+    const image = new Image();
+    image.onload = () => {
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, srcFormat, srcType, image);
+
+        // Always set these parameters regardless of power-of-2
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+        // Generate mipmaps only if power-of-2
+        if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+            gl.generateMipmap(gl.TEXTURE_2D);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        }
+    };
+    image.src = url;
+
+    return texture;
+}
+
+function isPowerOf2(value) {
+    return (value & (value - 1)) === 0;
+}
+
+// Only for cube
+function initTextureBuffer(gl) {
+    const textureCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
+
+    const textureCoordinates = [
+        // Front face - correct
+        0.0, 1.0,  
+        1.0, 1.0,  
+        1.0, 0.0,
+        0.0, 1.0,  
+        1.0, 0.0,  
+        0.0, 0.0,
+
+        // Back face - fixed to match [4, 6, 5], [4, 7, 6]
+        0.0, 1.0,  // v4
+        1.0, 0.0,  // v6
+        1.0, 1.0,  // v5
+        0.0, 1.0,  // v4
+        0.0, 0.0,  // v7
+        1.0, 0.0,  // v6
+
+        // Top face - correct
+        0.0, 1.0,  
+        1.0, 1.0,  
+        1.0, 0.0,
+        0.0, 1.0,  
+        1.0, 0.0,  
+        0.0, 0.0,
+
+        // Bottom face - correct
+        0.0, 1.0,  
+        1.0, 0.0,  
+        1.0, 1.0,
+        0.0, 1.0,  
+        0.0, 0.0,  
+        1.0, 0.0,
+
+        // Right face - fixed to match [1, 5, 6], [1, 6, 2]
+        0.0, 1.0,  // v1
+        1.0, 1.0,  // v5
+        1.0, 0.0,  // v6
+        0.0, 1.0,  // v1
+        1.0, 0.0,  // v6
+        0.0, 0.0,  // v2
+
+        // Left face - correct
+        0.0, 1.0,  
+        1.0, 1.0,  
+        1.0, 0.0,
+        0.0, 1.0,  
+        1.0, 0.0,  
+        0.0, 0.0
+    ];
+
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW);
+    return textureCoordBuffer;
+}
+
+
+
+export { getGL, initVertexBuffer, compileShader, linkShaderProgram, initSimpleShaderProgram, toRawLineArray, toRawTriangleArray, loadTexture, initTextureBuffer }  

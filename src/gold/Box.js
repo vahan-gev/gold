@@ -2,7 +2,7 @@ import { Object } from "./Object";
 import { Vector } from "./Math";
 
 class Box extends Object {
-    constructor(gl, color, position = new Vector(0, 0, 0), scale = new Vector(1, 1, 1)) {
+    constructor(gl, color, position = new Vector(0, 0, 0), scale = new Vector(1, 1, 1), textureUrl = null) {
         const X = 0.5;
         const Y = 0.5;
         const Z = 0.5;
@@ -25,8 +25,8 @@ class Box extends Object {
             [1, 5, 6], [1, 6, 2],
             [0, 3, 7], [0, 7, 4]
         ];
-        
-        super(gl, vertices, faces, color, position, scale);
+
+        super(gl, vertices, faces, color, position, scale, textureUrl);
     }
 }
 

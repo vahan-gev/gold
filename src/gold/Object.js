@@ -1,13 +1,13 @@
 import { Color } from "./Color";
 import { Vector, Matrix4f } from "./Math";
-import { initVertexBuffer, toRawLineArray, toRawTriangleArray } from "./Utilities";
+import { initTextureBuffer, initVertexBuffer, loadTexture, toRawLineArray, toRawTriangleArray } from "./Utilities";
 class Object {
-    constructor(gl, vertices, facesByIndex, color, position, scale) {
+    constructor(gl, vertices, facesByIndex, color, position, scale, textureUrl) {
         this.gl = gl;
         this.id = Math.random().toString(36).substring(7);
         this.vertices = vertices ?? [];
         this.facesByIndex = facesByIndex ?? []
-        this.color = color ?? { r: 0.5, g: 0.5, b: 0.5 };
+        this.color = color ?? new Color(1, 1, 1);
         this.isWireframe = false;
         this.rawVertices = toRawTriangleArray(this)
         this.position = position ?? new Vector(0, 0, 0);
@@ -15,6 +15,13 @@ class Object {
         this.rotation = new Vector(0, 0, 0);
         this.matrix = new Matrix4f();
         this.verticesBuffer = initVertexBuffer(this.gl, this.rawVertices);
+
+        this.textureUrl = textureUrl;
+        if (this.textureUrl) {
+            this.texture = loadTexture(gl, this.textureUrl);
+            this.textureCoordBuffer = initTextureBuffer(gl);
+        }
+
         if (Array.isArray(this.color)) {
             // Validate that each color in the array is a valid {r, g, b} object
             if (!this.color.every(c => c && typeof c.r === "number" && typeof c.g === "number" && typeof c.b === "number")) {
@@ -71,7 +78,7 @@ class Object {
         }
     }
 
-    draw(gl, globalTransformMatrix, vertexPosition, vertexColor, transform) {
+    draw(gl, globalTransformMatrix, vertexPosition, vertexColor, transform, vertexTexture, useTexture) {
         let objectTransformMatrix = this.matrix.createIdentity();
     
         let objectScalingMatrix = this.matrix.createScaling(this.scale.x, this.scale.y, this.scale.z);
@@ -95,6 +102,18 @@ class Object {
         gl.vertexAttribPointer(vertexColor, 3, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.verticesBuffer);
         gl.vertexAttribPointer(vertexPosition, 3, gl.FLOAT, false, 0, 0);
+        if (this.textureUrl) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.textureCoordBuffer);
+            gl.vertexAttribPointer(vertexTexture, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(vertexTexture);
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, this.texture);
+            gl.uniform1i(useTexture, 1);
+        } else {
+            gl.uniform1i(useTexture, 0);
+        }
+
         gl.drawArrays(this.wireframe ? gl.LINES : gl.TRIANGLES, 0, this.rawVertices.length / 3);
     }
 }

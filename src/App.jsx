@@ -7,7 +7,7 @@ import { Box } from './gold/Box';
 import { Color } from './gold/Color';
 import { Scene } from './gold/Scene';
 import { Sphere } from './gold/Sphere';
-
+import image from './assets/Vahan1.png'
 function App() {
     const CANVAS_WIDTH = 1024;
     const CANVAS_HEIGHT = 512;
@@ -20,20 +20,20 @@ function App() {
         const camera = new Camera();
 
         const mine = new Mine(canvas, camera);
-        camera.position = new Vector(0, 1, 3);
-        const box = new Box(mine.gl, new Color(1, 0.5, 0, 1), new Vector(0, 2, 0), new Vector(1, 1, 1));
-        const sphere = new Sphere(mine.gl, new Color(1, 0.5, 0, 1), new Vector(0, 0, 0), new Vector(1, 1, 1), 20);
+        camera.position = new Vector(0, 3, 3);
+        // Not working without texture
+        const box = new Box(mine.gl, new Color(1, 0.5, 0, 1), new Vector(0, 2, 0), new Vector(1, 1, 1), image);
         const scene = new Scene();
-        sphere.wireframe = true;
-        scene.add(sphere);
+        camera.rotation.x = -Math.PI / 6;
         scene.add(box);
-        
+
         let lastTime = 0;
+
         // Draw the scene
         const animate = (currentTime) => {
             const deltaTime = (currentTime - lastTime) / 1000;
             lastTime = currentTime;
-            sphere.rotation.y += deltaTime * 50;
+            box.rotation.y += deltaTime * 50;
             box.rotation.x += deltaTime * 50;
             mine.draw(scene);
             window.requestAnimationFrame(animate);
