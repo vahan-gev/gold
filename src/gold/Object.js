@@ -102,15 +102,16 @@ class Object {
         gl.vertexAttribPointer(vertexColor, 3, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, this.verticesBuffer);
         gl.vertexAttribPointer(vertexPosition, 3, gl.FLOAT, false, 0, 0);
+
         if (this.textureUrl) {
             gl.bindBuffer(gl.ARRAY_BUFFER, this.textureCoordBuffer);
             gl.vertexAttribPointer(vertexTexture, 2, gl.FLOAT, false, 0, 0);
             gl.enableVertexAttribArray(vertexTexture);
-
             gl.activeTexture(gl.TEXTURE0);
             gl.bindTexture(gl.TEXTURE_2D, this.texture);
             gl.uniform1i(useTexture, 1);
         } else {
+            gl.disableVertexAttribArray(vertexTexture);
             gl.uniform1i(useTexture, 0);
         }
 
