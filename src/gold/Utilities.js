@@ -102,7 +102,7 @@ function loadTexture(gl, url) {
     const border = 0;
     const srcFormat = gl.RGBA;
     const srcType = gl.UNSIGNED_BYTE;
-    const pixel = new Uint8Array([0, 255, 255, 255]);
+    const pixel = new Uint8Array([0, 0, 255, 255]);
     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, pixel);
 
     const image = new Image();
@@ -130,61 +130,9 @@ function isPowerOf2(value) {
     return (value & (value - 1)) === 0;
 }
 
-// Only for cube
-function initTextureBuffer(gl) {
+function initTextureBuffer(gl, textureCoordinates) {
     const textureCoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
-
-    const textureCoordinates = [
-        // Front face - correct
-        0.0, 1.0,  
-        1.0, 1.0,  
-        1.0, 0.0,
-        0.0, 1.0,  
-        1.0, 0.0,  
-        0.0, 0.0,
-
-        // Back face - fixed to match [4, 6, 5], [4, 7, 6]
-        0.0, 1.0,  // v4
-        1.0, 0.0,  // v6
-        1.0, 1.0,  // v5
-        0.0, 1.0,  // v4
-        0.0, 0.0,  // v7
-        1.0, 0.0,  // v6
-
-        // Top face - correct
-        0.0, 1.0,  
-        1.0, 1.0,  
-        1.0, 0.0,
-        0.0, 1.0,  
-        1.0, 0.0,  
-        0.0, 0.0,
-
-        // Bottom face - correct
-        0.0, 1.0,  
-        1.0, 0.0,  
-        1.0, 1.0,
-        0.0, 1.0,  
-        0.0, 0.0,  
-        1.0, 0.0,
-
-        // Right face - fixed to match [1, 5, 6], [1, 6, 2]
-        0.0, 1.0,  // v1
-        1.0, 1.0,  // v5
-        1.0, 0.0,  // v6
-        0.0, 1.0,  // v1
-        1.0, 0.0,  // v6
-        0.0, 0.0,  // v2
-
-        // Left face - correct
-        0.0, 1.0,  
-        1.0, 1.0,  
-        1.0, 0.0,
-        0.0, 1.0,  
-        1.0, 0.0,  
-        0.0, 0.0
-    ];
-
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW);
     return textureCoordBuffer;
 }

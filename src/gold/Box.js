@@ -26,7 +26,57 @@ class Box extends Object {
             [0, 3, 7], [0, 7, 4]
         ];
 
-        super(gl, vertices, faces, color, position, scale, textureUrl);
+        const textureCoordinates = [
+            // Front face
+            0.0, 1.0,  
+            1.0, 1.0,  
+            1.0, 0.0,
+            0.0, 1.0,  
+            1.0, 0.0,  
+            0.0, 0.0,
+    
+            // Back face
+            0.0, 1.0,
+            1.0, 0.0,
+            1.0, 1.0,
+            0.0, 1.0,
+            0.0, 0.0,
+            1.0, 0.0,
+    
+            // Top face
+            0.0, 1.0,  
+            1.0, 1.0,  
+            1.0, 0.0,
+            0.0, 1.0,  
+            1.0, 0.0,  
+            0.0, 0.0,
+    
+            // Bottom face
+            0.0, 1.0,  
+            1.0, 0.0,  
+            1.0, 1.0,
+            0.0, 1.0,  
+            0.0, 0.0,  
+            1.0, 0.0,
+    
+            // Right face
+            0.0, 1.0,
+            1.0, 1.0,
+            1.0, 0.0,
+            0.0, 1.0,
+            1.0, 0.0,
+            0.0, 0.0,
+    
+            // Left face
+            0.0, 1.0,  
+            1.0, 1.0,  
+            1.0, 0.0,
+            0.0, 1.0,  
+            1.0, 0.0,  
+            0.0, 0.0
+        ];
+
+        super(gl, vertices, faces, color, position, scale, textureUrl, textureCoordinates);
     }
 }
 

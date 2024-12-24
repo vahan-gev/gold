@@ -2,7 +2,7 @@ import { Color } from "./Color";
 import { Vector, Matrix4f } from "./Math";
 import { initTextureBuffer, initVertexBuffer, loadTexture, toRawLineArray, toRawTriangleArray } from "./Utilities";
 class Object {
-    constructor(gl, vertices, facesByIndex, color, position, scale, textureUrl) {
+    constructor(gl, vertices, facesByIndex, color, position, scale, textureUrl, textureCoordinates) {
         this.gl = gl;
         this.id = Math.random().toString(36).substring(7);
         this.vertices = vertices ?? [];
@@ -19,7 +19,7 @@ class Object {
         this.textureUrl = textureUrl;
         if (this.textureUrl) {
             this.texture = loadTexture(gl, this.textureUrl);
-            this.textureCoordBuffer = initTextureBuffer(gl);
+            this.textureCoordBuffer = initTextureBuffer(gl, textureCoordinates);
         }
 
         if (Array.isArray(this.color)) {

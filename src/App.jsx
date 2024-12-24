@@ -8,6 +8,7 @@ import { Color } from './gold/Color';
 import { Scene } from './gold/Scene';
 import { Sphere } from './gold/Sphere';
 import brick from './assets/brick.png'
+import wool from './assets/wool.png'
 function App() {
     const CANVAS_WIDTH = 1024;
     const CANVAS_HEIGHT = 512;
@@ -21,10 +22,10 @@ function App() {
 
         const mine = new Mine(canvas, camera);
         camera.position = new Vector(0, 1.5, 3);
-        // Not working without texture
         const box = new Box(mine.gl, new Color(1, 1, 0, 1), new Vector(0, 1.5, 0), new Vector(1, 1, 1), brick);
-        const sphere = new Sphere(mine.gl, new Color(1, 0.5, 0, 1), new Vector(2, 1.5, 0), new Vector(0.5, 0.5, 0.5), 20);
-        sphere.wireframe = true;
+        const sphere = new Sphere(mine.gl, new Color(1, 0.5, 0, 1), new Vector(2, 1.5, 0), new Vector(0.5, 0.5, 0.5), 20, wool);
+
+        // sphere.wireframe = true;
         const scene = new Scene();
         scene.add(box);
         scene.add(sphere);
