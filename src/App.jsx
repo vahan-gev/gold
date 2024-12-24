@@ -20,12 +20,14 @@ function App() {
         const camera = new Camera();
 
         const mine = new Mine(canvas, camera);
-        camera.position = new Vector(0, 3, 3);
+        camera.position = new Vector(0, 1.5, 3);
         // Not working without texture
         const box = new Box(mine.gl, new Color(1, 1, 0, 1), new Vector(0, 1.5, 0), new Vector(1, 1, 1), brick);
+        const sphere = new Sphere(mine.gl, new Color(1, 0.5, 0, 1), new Vector(2, 1.5, 0), new Vector(0.5, 0.5, 0.5), 20);
+        sphere.wireframe = true;
         const scene = new Scene();
-        camera.rotation.x = -Math.PI / 6;
         scene.add(box);
+        scene.add(sphere);
 
         let lastTime = 0;
 
@@ -35,6 +37,7 @@ function App() {
             lastTime = currentTime;
             box.rotation.y += deltaTime * 50;
             box.rotation.x += deltaTime * 50;
+            sphere.rotation.y += deltaTime * 50;
             mine.draw(scene);
             window.requestAnimationFrame(animate);
         }

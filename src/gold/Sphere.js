@@ -1,7 +1,7 @@
 import { Vector } from "./Math";
 import { Object } from "./Object";
 class Sphere extends Object {
-    constructor(gl, color, position = new Vector(0, 0, 0), scale = new Vector(1, 1, 1), resolution = 20) {
+    constructor(gl, color, position = new Vector(0, 0, 0), scale = new Vector(1, 1, 1), resolution = 20, textureUrl = null) {
         const vertices = [];
         const faces = [];
   
@@ -34,7 +34,7 @@ class Sphere extends Object {
             }
         }
   
-        super(gl, vertices, faces, color, position, scale);
+        super(gl, vertices, faces, color, position, scale, textureUrl);
     }
 }
   
