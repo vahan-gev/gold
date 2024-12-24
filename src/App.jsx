@@ -4,51 +4,111 @@ import './App.css';
 import { Camera } from './gold/Camera';
 import { Vector } from './gold/Math';
 import { Box } from './gold/Box';
+import { Sphere } from './gold/Sphere';
 import { Color } from './gold/Color';
 import { Scene } from './gold/Scene';
-import { Sphere } from './gold/Sphere';
 import brick from './assets/brick.png'
-import wool from './assets/wool.png'
-import { Model } from './gold/Model';
+import { EventManager } from './gold/EventManager';
 function App() {
-    const CANVAS_WIDTH = 1024;
-    const CANVAS_HEIGHT = 512;
+    const CANVAS_WIDTH = document.documentElement.clientWidth;
+    const CANVAS_HEIGHT = document.documentElement.clientHeight;
     const canvasRef = useRef();
+    const eventManagerRef = useRef();
+    const cameraRef = useRef();
+
+    // Camera control states
+    let moveSpeed = 5.0; // units per second
+    const keysPressed = useRef(new Set());
 
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return; // Canvas is not supported in your browser
 
         const camera = new Camera();
-
+        cameraRef.current = camera;
         const mine = new Mine(canvas, camera);
-        camera.position = new Vector(0, 1.5, 3);
-        const box = new Box(mine.gl, new Color(1, 1, 0, 1), new Vector(0, 1.5, 0), new Vector(1, 1, 1), brick);
-        const sphere = new Sphere(mine.gl, new Color(1, 0.5, 0, 1), new Vector(2, 1.5, 0), new Vector(0.5, 0.5, 0.5), 20, wool);
-       
-        // sphere.wireframe = true;
+        camera.position = new Vector(0, 3, 10);
         const scene = new Scene();
-        // scene.add(box);
-        // scene.add(sphere);
-        let model;
-        async function loadModels() {
-            model = await Model.create(mine.gl, new Color(0.5, 0.5, 0.5, 0), new Vector(0, 0, 0), new Vector(0.3, 0.3, 0.3), './chair.obj');
-            // model.wireframe = true;
-            scene.add(model);
-        }
 
-        loadModels();
+        const box = new Box(mine.gl, new Color(1, 1, 0, 1), new Vector(0, 0, 0), new Vector(10, 0.05, 10), brick);
+        const sphere = new Sphere(mine.gl, new Color(1, 0, 0, 1), new Vector(0, 2, 0), new Vector(1, 1, 1), 20, brick);
+        sphere.wireframe = true;
+        scene.add(box);
+        scene.add(sphere);
+
+        camera.lookAt(sphere.position)
+
+        const eventManager = new EventManager();
+        eventManagerRef.current = eventManager;
+
+        canvas.addEventListener('click', () => {
+            eventManager.requestPointerLock(canvas);
+        });
+
+        // Handle mouse movement
+        eventManager.addMouseListener('move', (movementX, movementY) => {
+            const sensitivity = 0.002;
+            const rotation = camera.rotation;
+            rotation.y -= movementX * sensitivity;
+            rotation.x = Math.max(
+                -Math.PI / 2 + 0.001,
+                Math.min(Math.PI / 2 - 0.001, 
+                rotation.x - movementY * sensitivity)
+            );
+            camera.rotation = rotation;
+        });
+
+        const handleKeyDown = (event) => {
+            keysPressed.current.add(event.key.toLowerCase());
+        };
+
+        const handleKeyUp = (event) => {
+            keysPressed.current.delete(event.key.toLowerCase());
+        };
+
+        ['w', 'a', 's', 'd', ' ', 'shift', 'Control'].forEach(key => {
+            eventManager.addKeyDown(key, handleKeyDown);
+            eventManager.addKeyUp(key, handleKeyUp);
+        });
+
+
         let lastTime = 0;
-
         // Draw the scene
         const animate = (currentTime) => {
             const deltaTime = (currentTime - lastTime) / 1000;
             lastTime = currentTime;
-            box.rotation.y += deltaTime * 50;
-            if (model) {
-                model.rotation.y += deltaTime * 50;
+
+            const currentPosition = camera.position;
+            let newPosition = new Vector(currentPosition.x, currentPosition.y, currentPosition.z);
+
+            // Check current state of keys using eventManager
+            if (eventManager.isKeyPressed('w')) {
+                newPosition = newPosition.add(camera.front.multiply(moveSpeed * deltaTime));
             }
-            box.rotation.x += deltaTime * 50;
+            if (eventManager.isKeyPressed('s')) {
+                newPosition = newPosition.subtract(camera.front.multiply(moveSpeed * deltaTime));
+            }
+            if (eventManager.isKeyPressed('a')) {
+                newPosition = newPosition.subtract(camera.right.multiply(moveSpeed * deltaTime));
+            }
+            if (eventManager.isKeyPressed('d')) {
+                newPosition = newPosition.add(camera.right.multiply(moveSpeed * deltaTime));
+            }
+            if (eventManager.isKeyPressed(' ')) {
+                newPosition.y += moveSpeed * deltaTime;
+            }
+            
+            if (eventManager.isKeyPressed('shift')) {
+                moveSpeed = 10.0;
+            } else {
+                moveSpeed = 5.0;
+            }
+
+            if (eventManager.isKeyPressed('Control')) {
+                newPosition.y -= moveSpeed * deltaTime;
+            }
+
+            camera.position = newPosition;
             sphere.rotation.y += deltaTime * 50;
             mine.draw(scene);
             window.requestAnimationFrame(animate);

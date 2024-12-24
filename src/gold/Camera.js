@@ -3,98 +3,131 @@ import { Matrix4f, Vector } from "./Math";
 class Camera {
     constructor() {
         this._position = new Vector(0, 0, 0);
-        this._rotation = new Vector(0, 0, 0);
+        this._rotation = new Vector(0, 0, 0); // pitch, yaw, roll
+        this._front = new Vector(0, 0, -1);
+        this._up = new Vector(0, 1, 0);
+        this._right = new Vector(1, 0, 0);
         this.matrix4 = new Matrix4f();
-        this.matrix = this.createMatrix(this._position, this._rotation);
+        this.updateVectors();
+        this.matrix = this.createMatrix();
+    }
+
+    updateVectors() {
+        // Calculate new front vector
+        const pitch = Math.max(-Math.PI/2 + 0.001, Math.min(Math.PI/2 - 0.001, this._rotation.x));
+        const yaw = this._rotation.y;
+
+        this._front = new Vector(
+            Math.cos(pitch) * Math.sin(yaw),
+            Math.sin(pitch),
+            Math.cos(pitch) * Math.cos(yaw)
+        );
+
+        // Recalculate right and up vectors
+        this._right = new Vector(
+            Math.sin(yaw - Math.PI/2),
+            0,
+            Math.cos(yaw - Math.PI/2)
+        );
+
+        // Up vector is cross product of right and front
+        const crossProduct = this._right.cross(this._front);
+        this._up = new Vector(crossProduct.x, crossProduct.y, crossProduct.z);
     }
 
     get position() {
-        const proxyHandler = {
-            set: (target, prop, value) => {
-                target[prop] = value;
-                this.updateMatrix();
-                return true;
-            }
-        };
-        return new Proxy(this._position, proxyHandler);
+        return this._position;
     }
 
-    set position(position) {
-        this._position = position;
-        this.updateMatrix();
+    set position(pos) {
+        this._position = pos;
+        this.matrix = this.createMatrix();
     }
 
     get rotation() {
-        const proxyHandler = {
-            set: (target, prop, value) => {
-                target[prop] = value;
-                this.updateMatrix();
-                return true;
-            }
-        };
-        return new Proxy(this._rotation, proxyHandler);
+        return this._rotation;
     }
 
-    set rotation(rotation) {
-        this._rotation = rotation;
-        this.updateMatrix();
+    set rotation(rot) {
+        this._rotation = rot;
+        this.updateVectors();
+        this.matrix = this.createMatrix();
     }
 
-    updateMatrix() {
-        this.matrix = this.createMatrix(this._position, this._rotation);
+    get front() {
+        return this._front;
     }
 
-    createMatrix(position, rotation) {
-        const { x, y, z } = position;
-        const { x: rx, y: ry, z: rz } = rotation;
-        const cameraMatrix = [
-            1, 0, 0, 0,
-            0, 1, 0, 0,
-            0, 0, 1, 0,
-            -x, -y, -z, 1
-        ];
-
-        const rotationMatrixX = [
-            1, 0, 0, 0,
-            0, Math.cos(rx), -Math.sin(rx), 0,
-            0, Math.sin(rx), Math.cos(rx), 0,
-            0, 0, 0, 1
-        ];
-
-        const rotationMatrixY = [
-            Math.cos(ry), 0, Math.sin(ry), 0,
-            0, 1, 0, 0,
-            -Math.sin(ry), 0, Math.cos(ry), 0,
-            0, 0, 0, 1
-        ];
-
-        const rotationMatrixZ = [
-            Math.cos(rz), -Math.sin(rz), 0, 0,
-            Math.sin(rz), Math.cos(rz), 0, 0,
-            0, 0, 1, 0,
-            0, 0, 0, 1
-        ];
-
-        const rotationMatrix = this.matrix4.multiply(rotationMatrixX, rotationMatrixY);
-        const finalMatrix = this.matrix4.multiply(rotationMatrix, rotationMatrixZ);
-        return this.matrix4.multiply(cameraMatrix, finalMatrix);
+    get right() {
+        return this._right;
     }
 
-    lookAt(position) {
+    get up() {
+        return this._up;
+    }
+
+    createMatrix() {
+        const target = new Vector(
+            this._position.x + this._front.x,
+            this._position.y + this._front.y,
+            this._position.z + this._front.z
+        );
+
+        // Create look-at matrix
+        const zAxis = this._front.multiply(-1).unit;
+        const xAxis = this._up.cross(zAxis).unit;
+        const yAxis = zAxis.cross(xAxis).unit;
+
+        const viewMatrix = [
+            xAxis.x, yAxis.x, zAxis.x, 0,
+            xAxis.y, yAxis.y, zAxis.y, 0,
+            xAxis.z, yAxis.z, zAxis.z, 0,
+            -(xAxis.dot(this._position)), 
+            -(yAxis.dot(this._position)), 
+            -(zAxis.dot(this._position)), 1
+        ];
+
+        return viewMatrix;
+    }
+
+    setRotation(axis, value) {
+        const newRotation = new Vector(
+            axis === 'x' ? value : this._rotation.x,
+            axis === 'y' ? value : this._rotation.y,
+            axis === 'z' ? value : this._rotation.z
+        );
+        this.rotation = newRotation;
+    }
+
+    lookAt(target) {
+        // If target is not a Vector, create one
+        if (!(target instanceof Vector)) {
+            target = new Vector(target.x || 0, target.y || 0, target.z || 0);
+        }
+
         // Calculate direction vector from camera to target
-        const direction = position.subtract(this._position);
-        
-        // Calculate rotation angles
-        const distance = Math.sqrt(direction.x * direction.x + direction.z * direction.z);
-        
-        // Calculate pitch (rotation around X axis)
-        const pitch = -Math.atan2(direction.y, distance);
-        
-        // Calculate yaw (rotation around Y axis) 
+        const direction = target.subtract(this._position);
+
+        // Calculate yaw (rotation around Y axis)
+        // atan2 gives us the angle in radians between the positive x-axis and the point
         const yaw = Math.atan2(direction.x, direction.z);
-        
+
+        // Calculate pitch (rotation around X axis)
+        // We need to calculate the distance in the XZ plane first
+        const horizontalDistance = Math.sqrt(direction.x * direction.x + direction.z * direction.z);
+        const pitch = -Math.atan2(direction.y, horizontalDistance);
+
         // Update camera rotation
-        this.rotation = new Vector(pitch, yaw, 0);
+        this.rotation = new Vector(
+            // Clamp pitch to avoid gimbal lock
+            Math.max(-Math.PI/2 + 0.001, Math.min(Math.PI/2 - 0.001, pitch)),
+            yaw,
+            0  // We don't use roll in this camera system
+        );
+    }
+
+    lookAtImmediate(x, y, z) {
+        this.lookAt(new Vector(x, y, z));
     }
 }
 
