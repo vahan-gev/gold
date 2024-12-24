@@ -25,12 +25,15 @@ function App() {
         camera.position = new Vector(0, 1.5, 3);
         const box = new Box(mine.gl, new Color(1, 1, 0, 1), new Vector(0, 1.5, 0), new Vector(1, 1, 1), brick);
         const sphere = new Sphere(mine.gl, new Color(1, 0.5, 0, 1), new Vector(2, 1.5, 0), new Vector(0.5, 0.5, 0.5), 20, wool);
-
+       
         // sphere.wireframe = true;
         const scene = new Scene();
+        // scene.add(box);
+        // scene.add(sphere);
         let model;
         async function loadModels() {
-            model = await Model.create(mine.gl, new Color(0, 0, 0, 1), new Vector(0, 0, 0), new Vector(0.2, 0.2, 0.2), './tree.obj');
+            model = await Model.create(mine.gl, new Color(0.5, 0.5, 0.5, 0), new Vector(0, 0, 0), new Vector(0.3, 0.3, 0.3), './chair.obj');
+            // model.wireframe = true;
             scene.add(model);
         }
 
