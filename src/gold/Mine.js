@@ -57,6 +57,18 @@ class Mine {
         this.vertexTexture = gl.getAttribLocation(this.shaderProgram, 'vertexTexture');
         gl.enableVertexAttribArray(this.vertexTexture);
         this.uSampler = gl.getUniformLocation(this.shaderProgram, 'uSampler');
+
+        // Lighting and Normals
+        this.vertexNormal = gl.getAttribLocation(this.shaderProgram, 'vertexNormal');
+        this.gl.enableVertexAttribArray(this.vertexNormal);
+
+        this.lightPositionUniform = gl.getUniformLocation(this.shaderProgram, 'lightPosition');
+        this.lightDirectionUniform = gl.getUniformLocation(this.shaderProgram, 'lightDirection');
+
+        this.lightPosition = new Vector(0, 20, 0);
+        this.lightDirection = new Vector(1, 0, 0);
+
+        this.normalizedLightDirection = this.lightDirection.normalize(this.lightDirection);
     }
 
     draw(scene) {
@@ -79,13 +91,15 @@ class Mine {
         transformMatrix = this.matrix.multiply(transformMatrix, translationMatrix);
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+        gl.uniform3fv(this.lightPositionUniform, [this.lightPosition.x, this.lightPosition.y, this.lightPosition.z]);
+        gl.uniform3fv(this.lightDirectionUniform, [this.normalizedLightDirection.x, this.normalizedLightDirection.y, this.normalizedLightDirection.z]);
 
         gl.uniformMatrix4fv(this.projectionMatrix, gl.FALSE, new Float32Array(this.matrix.createPerspective(75, this.aspectRatio, 0.1, 1000)));
         gl.uniformMatrix4fv(this.cameraLocation, gl.FALSE, new Float32Array(this.camera.matrix));
         gl.uniformMatrix4fv(this.transform, gl.FALSE, new Float32Array(transformMatrix));
         gl.uniform1i(this.uSampler, 0);
         scene.forEach(object => {
-            object.draw(gl, transformMatrix, this.vertexPosition, this.vertexColor, this.transform, this.vertexTexture, this.useTexture);
+            object.draw(gl, transformMatrix, this.vertexPosition, this.vertexColor, this.transform, this.vertexTexture, this.useTexture, this.vertexNormal);
         });
         
         gl.flush();

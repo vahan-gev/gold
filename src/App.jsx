@@ -4,15 +4,15 @@ import './App.css';
 import { Camera } from './gold/Camera';
 import { Vector } from './gold/Math';
 import { Box } from './gold/Box';
-import { Sphere } from './gold/Sphere';
 import { Color } from './gold/Color';
 import { Scene } from './gold/Scene';
 import brick from './assets/brick.png'
+import cobblestone from './assets/cobblestone.png'
 import { EventManager } from './gold/EventManager';
 
 /*
     TODO:
-    - Add lighting
+    - Add lighting (ongoing)
     - Add textures to 3D models
     - Skeletal animation
     - Backface culling
@@ -49,12 +49,11 @@ function App() {
         const scene = new Scene();
 
         const box = new Box(mine.gl, new Color(1, 1, 0, 1), new Vector(0, 0, 0), new Vector(10, 0.05, 10), brick);
-        const sphere = new Sphere(mine.gl, new Color(1, 0, 0, 1), new Vector(0, 2, 0), new Vector(1, 1, 1), 20, brick);
-        sphere.wireframe = true;
+        const box2 = new Box(mine.gl, new Color(1, 1, 1, 1), new Vector(0, 2, 0), new Vector(2, 2, 2), cobblestone);
         scene.add(box);
-        scene.add(sphere);
+        scene.add(box2);
 
-        camera.lookAt(sphere.position)
+        camera.lookAt(box2.position)
 
         const eventManager = new EventManager();
         eventManagerRef.current = eventManager;
@@ -127,7 +126,8 @@ function App() {
             }
 
             camera.position = newPosition;
-            sphere.rotation.y += deltaTime * 50;
+            box2.rotation.y += deltaTime * 50;
+            box2.rotation.x += deltaTime * 50;
             mine.draw(scene);
             window.requestAnimationFrame(animate);
         }

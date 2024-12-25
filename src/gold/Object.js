@@ -1,8 +1,8 @@
 import { Color } from "./Color";
 import { Vector, Matrix4f } from "./Math";
-import { initTextureBuffer, initVertexBuffer, loadTexture, toRawLineArray, toRawTriangleArray } from "./Utilities";
+import { computeFaceNormals, computeTriangleNormals, initTextureBuffer, initVertexBuffer, loadTexture, toRawLineArray, toRawTriangleArray } from "./Utilities";
 class Object {
-    constructor(gl, vertices, facesByIndex, color, position, scale, textureUrl, textureCoordinates) {
+    constructor(gl, vertices, facesByIndex, color, position, scale, textureUrl, textureCoordinates, normalCalculation) {
         this.gl = gl;
         this.id = Math.random().toString(36).substring(7);
         if (Array.isArray(vertices)) {
@@ -27,13 +27,15 @@ class Object {
         this.color = color ?? new Color(1, 1, 1);
         this.isWireframe = false;
         this.rawVertices = toRawTriangleArray(this)
+        this.faceNormals = computeFaceNormals(this);
         this.position = position ?? new Vector(0, 0, 0);
         this.scale = scale ?? new Vector(1, 1, 1);
         this.rotation = new Vector(0, 0, 0);
         this.matrix = new Matrix4f();
         this.verticesBuffer = initVertexBuffer(this.gl, this.rawVertices);
-
+        this.normalCalculationValue = normalCalculation ? normalCalculation : computeTriangleNormals;
         this.textureUrl = textureUrl;
+
         if (this.textureUrl) {
             this.texture = loadTexture(gl, this.textureUrl);
             this.textureCoordBuffer = initTextureBuffer(gl, textureCoordinates);
@@ -61,10 +63,20 @@ class Object {
             }
         }
         this.colorsBuffer = initVertexBuffer(this.gl, this.colors);        
+        this.normalsBuffer = initVertexBuffer(this.gl, this.normalCalculationValue(this));
     }
 
     get wireframe() {
         return this.isWireframe;
+    }
+
+    get normalCalculation() {
+        return this.normalCalculationValue
+    }
+    
+    set normalCalculation(newNormalCalculationValue) {
+        this.normalCalculationValue = newNormalCalculationValue
+        this.normalsBuffer = initVertexBuffer(this.gl, newNormalCalculationValue(this))
     }
 
     set wireframe(value) {
@@ -92,10 +104,11 @@ class Object {
                 }
             }
             this.colorsBuffer = initVertexBuffer(this.gl, this.colors); 
+            this.normalsBuffer = initVertexBuffer(this.gl, this.normalCalculation(this));
         }
     }
 
-    draw(gl, globalTransformMatrix, vertexPosition, vertexColor, transform, vertexTexture, useTexture) {
+    draw(gl, globalTransformMatrix, vertexPosition, vertexColor, transform, vertexTexture, useTexture, vertexNormal) {
         let objectTransformMatrix = this.matrix.createIdentity();
     
         let objectScalingMatrix = this.matrix.createScaling(this.scale.x, this.scale.y, this.scale.z);
@@ -114,11 +127,14 @@ class Object {
         let finalTransformMatrix = this.matrix.multiply(globalTransformMatrix, objectTransformMatrix);
         gl.uniformMatrix4fv(transform, gl.FALSE, new Float32Array(finalTransformMatrix));
     
-        // Bind buffers and draw the object
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.colorsBuffer);
-        gl.vertexAttribPointer(vertexColor, 3, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.verticesBuffer);
-        gl.vertexAttribPointer(vertexPosition, 3, gl.FLOAT, false, 0, 0);
+        // Set the varying normals
+        if (!this.wireframe) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.normalsBuffer);
+            gl.vertexAttribPointer(vertexNormal, 3, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(vertexNormal);
+        } else {
+            gl.disableVertexAttribArray(vertexNormal);
+        }
 
         if (this.textureUrl) {
             gl.bindBuffer(gl.ARRAY_BUFFER, this.textureCoordBuffer);
@@ -131,6 +147,12 @@ class Object {
             gl.disableVertexAttribArray(vertexTexture);
             gl.uniform1i(useTexture, 0);
         }
+
+        // Bind buffers and draw the object
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.colorsBuffer);
+        gl.vertexAttribPointer(vertexColor, 3, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.verticesBuffer);
+        gl.vertexAttribPointer(vertexPosition, 3, gl.FLOAT, false, 0, 0);
 
         gl.drawArrays(this.wireframe ? gl.LINES : gl.TRIANGLES, 0, this.rawVertices.length / 3);
     }

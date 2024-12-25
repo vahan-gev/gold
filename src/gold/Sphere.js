@@ -1,5 +1,6 @@
 import { Vector } from "./Math";
 import { Object } from "./Object";
+import { computeVertexNormals } from "./Utilities";
 class Sphere extends Object {
     constructor(gl, color, position = new Vector(0, 0, 0), scale = new Vector(1, 1, 1), resolution = 20, textureUrl = null) {
         const vertices = [];
@@ -67,7 +68,7 @@ class Sphere extends Object {
             }
         }
         
-        super(gl, vertices, faces, color, position, scale, textureUrl, textureCoordinates);
+        super(gl, vertices, faces, color, position, scale, textureUrl, textureCoordinates, computeVertexNormals);
     }
 }
   

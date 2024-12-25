@@ -1,5 +1,6 @@
 import { Object } from "./Object";
 import { Vector } from "./Math";
+import { computeTriangleNormals } from "./Utilities";
 
 class Box extends Object {
     constructor(gl, color, position = new Vector(0, 0, 0), scale = new Vector(1, 1, 1), textureUrl = null) {
@@ -76,7 +77,7 @@ class Box extends Object {
             0.0, 0.0
         ];
 
-        super(gl, vertices, faces, color, position, scale, textureUrl, textureCoordinates);
+        super(gl, vertices, faces, color, position, scale, textureUrl, textureCoordinates, computeTriangleNormals);
     }
 }
 

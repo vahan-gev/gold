@@ -1,3 +1,5 @@
+import { Vector } from "./Math";
+
 const getGL = canvas => canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
 
 const initVertexBuffer = (gl, vertices) => {
@@ -136,4 +138,55 @@ function initTextureBuffer(gl, textureCoordinates) {
     return textureCoordBuffer;
 }
 
-export { getGL, initVertexBuffer, compileShader, linkShaderProgram, initSimpleShaderProgram, toRawLineArray, toRawTriangleArray, loadTexture, initTextureBuffer }  
+const computeFaceNormals = protoGeometry =>
+    protoGeometry.facesByIndex.map(face => {
+        // Compute the triangle normal...
+        const p0 = new Vector(...protoGeometry.vertices[face[0]])
+        const p1 = new Vector(...protoGeometry.vertices[face[1]])
+        const p2 = new Vector(...protoGeometry.vertices[face[2]])
+
+        const v1 = p1.subtract(p0)
+        const v2 = p2.subtract(p0)
+
+        // Formula from book "Real-time 3D Graphics" "Normals" section.
+        return v1.cross(v2)
+    })
+
+const computeTriangleNormals = protoGeometry => {
+    const result = []
+
+    // For every triangle...
+    protoGeometry.facesByIndex.forEach((face, faceIndex) => {
+        const N = protoGeometry.faceNormals[faceIndex]
+
+        // Every vertex in the triangle gets the same normal.
+        result.push(...N.elements)
+        result.push(...N.elements)
+        result.push(...N.elements)
+    })
+
+    return result
+}
+
+const computeVertexNormals = protoGeometry => {
+    const result = [];
+    // For every triangle...
+    protoGeometry.facesByIndex.forEach(face => {
+        // For every vertex in that triangle...
+        face.forEach(vertexIndex => {
+            let totalVector = new Vector(0, 0, 0);
+
+            // Grab every face the vertex is in.
+            protoGeometry.facesByIndex.forEach((face, faceIndex) => {
+                if(face.includes(vertexIndex)) {
+                    totalVector = totalVector.add(protoGeometry.faceNormals[faceIndex]);
+                }
+            })
+            result.push(...totalVector.unit.elements);
+        })
+    })
+
+    return result;
+}
+
+export { getGL, initVertexBuffer, compileShader, linkShaderProgram, initSimpleShaderProgram, toRawLineArray, toRawTriangleArray, loadTexture, initTextureBuffer, computeFaceNormals, computeTriangleNormals, computeVertexNormals }  

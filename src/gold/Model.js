@@ -1,6 +1,7 @@
 import { Object } from './Object';
 import { Vector } from './Math';
 import ModelLoader from './ModelLoader';
+import { computeVertexNormals } from './Utilities';
 
 class Model extends Object {
     static async create(gl, color, position = new Vector(0, 0, 0), scale = new Vector(1, 1, 1), modelUrl, textureUrl = null) {
@@ -49,7 +50,7 @@ class Model extends Object {
             ]);
         }
 
-        super(gl, vertices, faces, color, position, scale, textureUrl, modelData.textureCoords);
+        super(gl, vertices, faces, color, position, scale, textureUrl, modelData.textureCoords, computeVertexNormals);
     }
 }
 
