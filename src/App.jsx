@@ -9,6 +9,24 @@ import { Color } from './gold/Color';
 import { Scene } from './gold/Scene';
 import brick from './assets/brick.png'
 import { EventManager } from './gold/EventManager';
+
+/*
+    TODO:
+    - Add lighting
+    - Add textures to 3D models
+    - Skeletal animation
+    - Backface culling
+    - Chunks
+    - Raycasting
+    - Audio Manager
+    - Physics Engine
+    - Collision Detection
+    - Particle System
+    - Networking
+    - UI
+    - Save/Load
+*/
+
 function App() {
     const CANVAS_WIDTH = document.documentElement.clientWidth;
     const CANVAS_HEIGHT = document.documentElement.clientHeight;
