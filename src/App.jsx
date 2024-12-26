@@ -9,7 +9,8 @@ import { Scene } from './gold/Scene';
 import brick from './assets/brick.png'
 import cobblestone from './assets/cobblestone.png'
 import { EventManager } from './gold/EventManager';
-
+import { Sphere } from './gold/Sphere'
+import earth from './assets/earth.jpg'
 /*
     TODO:
     - Add lighting (ongoing)
@@ -51,9 +52,13 @@ function App() {
         const box = new Box(mine.gl, new Color(1, 1, 0, 1), new Vector(0, 0, 0), new Vector(10, 0.05, 10), brick);
         const box2 = new Box(mine.gl, new Color(1, 1, 1, 1), new Vector(0, 2, 0), new Vector(2, 2, 2), cobblestone);
         scene.add(box);
-        scene.add(box2);
-
+        const sphere = new Sphere(mine.gl, new Color(1, 0, 0, 1), new Vector(0, 2, 0), new Vector(1, 1, 1), 50, earth)
+        // Rotate sphere upside down
+        
+        // scene.add(box2);
+        scene.add(sphere)
         camera.lookAt(box2.position)
+        
 
         const eventManager = new EventManager();
         eventManagerRef.current = eventManager;
@@ -126,8 +131,11 @@ function App() {
             }
 
             camera.position = newPosition;
-            box2.rotation.y += deltaTime * 50;
-            box2.rotation.x += deltaTime * 50;
+            // Rotate light in a circle of radius 3
+            mine.lightPosition = new Vector(3 * Math.cos(currentTime / 1000), 20, 3 * Math.sin(currentTime / 1000));
+            // box2.rotation.y += deltaTime * 50;
+            // box2.rotation.x += deltaTime * 50;
+            sphere.rotation.y += deltaTime * 50;
             mine.draw(scene);
             window.requestAnimationFrame(animate);
         }

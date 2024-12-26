@@ -1,6 +1,7 @@
 import { Vector } from "./Math";
 import { Object } from "./Object";
 import { computeVertexNormals } from "./Utilities";
+
 class Sphere extends Object {
     constructor(gl, color, position = new Vector(0, 0, 0), scale = new Vector(1, 1, 1), resolution = 20, textureUrl = null) {
         const vertices = [];
@@ -34,7 +35,7 @@ class Sphere extends Object {
 
                 // First triangle
                 faces.push([first, first + 1, second]);
-                
+
                 // Texture coordinates for first triangle
                 const u1 = longNumber / resolution;
                 const v1 = latNumber / resolution;
@@ -42,16 +43,16 @@ class Sphere extends Object {
                 const v2 = latNumber / resolution;
                 const u3 = longNumber / resolution;
                 const v3 = (latNumber + 1) / resolution;
-                
+
                 textureCoordinates.push(
-                    u1, 1 - v1,
-                    u2, 1 - v2,
-                    u3, 1 - v3
+                    u1, v1,
+                    u2, v2,
+                    u3, v3
                 );
 
                 // Second triangle
                 faces.push([second, first + 1, second + 1]);
-                
+
                 // Texture coordinates for second triangle
                 const u4 = longNumber / resolution;
                 const v4 = (latNumber + 1) / resolution;
@@ -59,17 +60,17 @@ class Sphere extends Object {
                 const v5 = latNumber / resolution;
                 const u6 = (longNumber + 1) / resolution;
                 const v6 = (latNumber + 1) / resolution;
-                
+
                 textureCoordinates.push(
-                    u4, 1 - v4,
-                    u5, 1 - v5,
-                    u6, 1 - v6
+                    u4, v4,
+                    u5, v5,
+                    u6, v6
                 );
             }
         }
-        
+
         super(gl, vertices, faces, color, position, scale, textureUrl, textureCoordinates, computeVertexNormals);
     }
 }
-  
-export { Sphere }  
+
+export { Sphere }

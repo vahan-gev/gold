@@ -65,7 +65,7 @@ class Mine {
         this.lightPositionUniform = gl.getUniformLocation(this.shaderProgram, 'lightPosition');
         this.lightDirectionUniform = gl.getUniformLocation(this.shaderProgram, 'lightDirection');
 
-        this.lightPosition = new Vector(0, 20, 0);
+        this.lightPosition = new Vector(0, 5, 0);
         this.lightDirection = new Vector(1, 0, 0);
 
         this.normalizedLightDirection = this.lightDirection.normalize(this.lightDirection);
