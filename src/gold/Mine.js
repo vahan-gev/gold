@@ -1,6 +1,8 @@
 import { getGL, initSimpleShaderProgram } from "./Utilities";
 import { FRAGMENT_SHADER, VERTEX_SHADER } from "./Shaders";
 import { Matrix4f, Vector } from "./Math";
+import { Light } from "./Lights/Light";
+import { DiffuseLighting } from "./Lights/DiffuseLighting";
 
 class Mine {
     constructor(canvas, camera) {
@@ -64,11 +66,8 @@ class Mine {
 
         this.lightPositionUniform = gl.getUniformLocation(this.shaderProgram, 'lightPosition');
         this.lightDirectionUniform = gl.getUniformLocation(this.shaderProgram, 'lightDirection');
-
-        this.lightPosition = new Vector(0, 5, 0);
-        this.lightDirection = new Vector(1, 0, 0);
-
-        this.normalizedLightDirection = this.lightDirection.normalize(this.lightDirection);
+        this.useDiffuseLighting = gl.getUniformLocation(this.shaderProgram, 'useDiffuseLighting');
+        this.diffuseColor = gl.getUniformLocation(this.shaderProgram, 'diffuseColor');
     }
 
     draw(scene) {
@@ -91,15 +90,27 @@ class Mine {
         transformMatrix = this.matrix.multiply(transformMatrix, translationMatrix);
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.uniform3fv(this.lightPositionUniform, [this.lightPosition.x, this.lightPosition.y, this.lightPosition.z]);
-        gl.uniform3fv(this.lightDirectionUniform, [this.normalizedLightDirection.x, this.normalizedLightDirection.y, this.normalizedLightDirection.z]);
-
+        
         gl.uniformMatrix4fv(this.projectionMatrix, gl.FALSE, new Float32Array(this.matrix.createPerspective(75, this.aspectRatio, 0.1, 1000)));
         gl.uniformMatrix4fv(this.cameraLocation, gl.FALSE, new Float32Array(this.camera.matrix));
         gl.uniformMatrix4fv(this.transform, gl.FALSE, new Float32Array(transformMatrix));
         gl.uniform1i(this.uSampler, 0);
         scene.forEach(object => {
-            object.draw(gl, transformMatrix, this.vertexPosition, this.vertexColor, this.transform, this.vertexTexture, this.useTexture, this.vertexNormal);
+            if(object instanceof Light) {
+                if(object instanceof DiffuseLighting) {
+                    this.lightPosition = object.position;
+                    this.lightDirection = object.direction;
+                    this.normalizedLightDirection = this.lightDirection.normalize(this.lightDirection);    
+                    gl.uniform3fv(this.lightPositionUniform, [this.lightPosition.x, this.lightPosition.y, this.lightPosition.z]);
+                    gl.uniform3fv(this.lightDirectionUniform, [this.normalizedLightDirection.x, this.normalizedLightDirection.y, this.normalizedLightDirection.z]);
+                    gl.uniform1i(this.useDiffuseLighting, 1);
+                    gl.uniform3f(this.diffuseColor, object.color.r, object.color.g, object.color.b);
+                } else {
+                    gl.uniform1i(this.useDiffuseLighting, 0);
+                }
+            } else if(object instanceof Object) {
+                object.draw(gl, transformMatrix, this.vertexPosition, this.vertexColor, this.transform, this.vertexTexture, this.useTexture, this.vertexNormal);
+            }
         });
         
         gl.flush();

@@ -26,6 +26,24 @@ class Scene {
             callback(obj);
         }
     }
+
+    contains(objType) {
+        for(const obj of this.objects) {
+            if(obj instanceof objType) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    returnIfContains(objType) {
+        for(const obj of this.objects) {
+            if(obj instanceof objType) {
+                return obj;
+            }
+        }
+        return null;
+    }
 }
 
 export { Scene }

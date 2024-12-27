@@ -13,10 +13,11 @@ const VERTEX_SHADER = `
     uniform mat4 projectionMatrix;
     uniform vec3 lightPosition;
     uniform vec3 lightDirection;
+    uniform vec3 diffuseColor;  // New uniform for diffuse light color
     
     varying vec4 fragColor;
     varying vec2 fragTexture;
-    varying float fragDiffuse;
+    varying vec3 fragDiffuse;
     varying vec3 fragAmbient;
     
     void main(void) {
@@ -28,7 +29,8 @@ const VERTEX_SHADER = `
         vec4 vertexPosition4 = vec4(vertexPosition, 1.0);
         vec3 lightDir = normalize(lightPosition - vec3(transform * vertexPosition4));
         
-        float diffuse = max(dot(normalize(vec3(transformedNormal)), lightDir), 0.0);
+        float diffuseIntensity = max(dot(normalize(vec3(transformedNormal)), lightDir), 0.0);
+        vec3 diffuse = diffuseColor * diffuseIntensity;  // Apply color to diffuse lighting
         
         // Pass lighting information to fragment shader
         fragDiffuse = diffuse;
@@ -47,19 +49,22 @@ const FRAGMENT_SHADER = `
     
     varying vec4 fragColor;
     varying vec2 fragTexture;
-    varying float fragDiffuse;
+    varying vec3 fragDiffuse;
     varying vec3 fragAmbient;
     
     uniform sampler2D uSampler;
     uniform bool useTexture;
+    uniform bool useDiffuseLighting;
     
     void main(void) {
+        vec3 lighting = fragAmbient + (useDiffuseLighting ? fragDiffuse : vec3(0.0));
+        
         if (useTexture) {
             vec4 texColor = texture2D(uSampler, fragTexture);
-            vec3 litColor = (fragAmbient + fragDiffuse) * texColor.rgb;
+            vec3 litColor = lighting * texColor.rgb;
             gl_FragColor = vec4(litColor, texColor.a);
         } else {
-            gl_FragColor = vec4((fragAmbient + fragDiffuse) * fragColor.rgb, fragColor.a);
+            gl_FragColor = vec4(lighting * fragColor.rgb, fragColor.a);
         }
     }
 `;
