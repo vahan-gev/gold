@@ -55,7 +55,6 @@ function App() {
         scene.add(box);
         const sphere = new Sphere(mine.gl, new Color(1, 0, 0, 1), new Vector(0, 2, 0), new Vector(1, 1, 1), 50, earth)
         
-        // scene.add(box2);
         scene.add(sphere)
         camera.lookAt(box2.position)
         const diffuseLighting = new DiffuseLighting(new Vector(0, 5, 0), new Vector(1, 0, 0), new Color(1, 1, 1, 1));
